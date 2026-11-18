@@ -1,0 +1,10 @@
+{
+  "name": "tour-v2",
+  "version": "0.5.0",
+  "description": "Tour a code change as a domain map and comments at the code, served in a local viewer",
+  "author": {
+    "name": "popoffvg"
+  },
+  "repository": "https://github.com/popoffvg/tour-v2",
+  "keywords": ["code-review", "tour", "diff", "viewer"]
+}

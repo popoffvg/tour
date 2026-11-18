@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>tour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" media="(prefers-color-scheme: light)" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github.min.css">
+<link rel="stylesheet" media="(prefers-color-scheme: dark)" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<style>
+  :root {
+    --base:#eff1f5; --mantle:#e6e9ef; --crust:#dce0e8; --surface:#ccd0da; --text:#4c4f69; --subtext:#6c6f85; --overlay:#9ca0b0;
+    --accent:#1e66f5; --green:#40a02b; --red:#d20f39; --yellow:#df8e1d; --range:rgba(223,142,29,.13); --card:#ffffff; --shadow:0 8px 24px rgba(76,79,105,.12);
+  }
+  @media (prefers-color-scheme: dark) { :root {
+    --base:#24273a; --mantle:#1e2030; --crust:#181926; --surface:#363a4f; --text:#cad3f5; --subtext:#a5adcb; --overlay:#6e738d;
+    --accent:#8aadf4; --green:#a6da95; --red:#ed8796; --yellow:#eed49f; --range:rgba(238,212,159,.09); --card:#2b2f45; --shadow:0 8px 24px rgba(0,0,0,.35);
+  } }
+  * { box-sizing:border-box; }
+  body { margin:0; height:100vh; overflow:hidden; display:flex; flex-direction:column; font:14px/1.6 Inter, -apple-system, system-ui, sans-serif; background:var(--base); color:var(--text); }
+  a { color:var(--accent); }
+  code { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.88em; background:var(--mantle); padding:1px 5px; border-radius:4px; }
+
+  #main { flex:1; min-height:0; display:grid; grid-template-columns:minmax(360px, 36%) 1fr; }
+  #empty { padding:48px; color:var(--subtext); }
+  #tabs { display:flex; gap:2px; padding:6px 10px 0; background:var(--crust); overflow-x:auto; flex-shrink:0; }
+  #tabs .tab { display:flex; align-items:center; gap:8px; max-width:320px; padding:7px 10px 7px 14px; border-radius:8px 8px 0 0; color:var(--subtext); text-decoration:none; font-size:13px; white-space:nowrap; }
+  #tabs .tab:hover { background:var(--mantle); color:var(--text); }
+  #tabs .tab.current { background:var(--mantle); color:var(--text); font-weight:600; }
+  #tabs .tab span.name { overflow:hidden; text-overflow:ellipsis; }
+  #tabs .count { font-size:11px; background:var(--surface); border-radius:999px; padding:0 7px; }
+  #tabs .count.crit { background:var(--red); color:var(--base); }
+  #tabs .x { border:none; background:none; color:var(--overlay); cursor:pointer; font-size:15px; line-height:1; padding:0 2px; border-radius:4px; }
+  #tabs .x:hover { color:var(--red); }
+  #todo { height:100%; overflow:auto; padding:28px 32px 64px; background:var(--mantle); border-right:1px solid var(--crust); }
+  #todo h1 { font-size:22px; line-height:1.3; margin:0 0 8px; letter-spacing:-.01em; }
+  #todo h2 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--subtext); margin:28px 0 8px; }
+  #todo h3 { font-size:15px; margin:12px 0 8px; }
+  #todo > p:first-of-type { color:var(--subtext); font-size:12.5px; word-break:break-all; }
+  #todo table { width:100%; border-collapse:separate; border-spacing:0; background:var(--card); border-radius:10px; overflow:hidden; box-shadow:var(--shadow); font-size:13px; }
+  #todo th { text-align:left; font-weight:600; color:var(--subtext); background:var(--crust); }
+  #todo td code { word-break:break-all; }
+  #todo td, #todo th { padding:8px 10px; border-bottom:1px solid var(--crust); vertical-align:top; }
+  #todo tr:last-child td { border-bottom:none; }
+  #todo td a { display:inline-grid; place-items:center; min-width:24px; height:24px; border-radius:12px; background:var(--crust); text-decoration:none; font-weight:600; }
+  #todo a.current { background:var(--accent); color:var(--base); }
+  #todo svg a.current :is(rect, circle, polygon, path) { stroke:var(--accent) !important; stroke-width:3px !important; }
+  .mermaid { position:relative; background:var(--card); border-radius:12px; padding:16px; box-shadow:var(--shadow); text-align:center; cursor:zoom-in; }
+  #overlay { position:fixed; inset:0; z-index:10; display:none; flex-direction:column; background:var(--base); }
+  #overlay.on { display:flex; }
+  #overlay .tools { display:flex; gap:8px; align-items:center; padding:10px 16px; border-bottom:1px solid var(--crust); }
+  #overlay .tools span { flex:1; color:var(--subtext); font-size:13px; }
+  #overlay .canvas { flex:1; overflow:auto; padding:24px; cursor:grab; }
+  #todo, #overlay { --pele-bg:transparent; --pele-fg:var(--text); --pele-muted:var(--subtext); --pele-line:var(--overlay); --pele-surface:var(--mantle); --pele-surface-alt:var(--crust); --pele-border:var(--surface); --pele-accent:var(--accent); --pele-font:Inter, system-ui, sans-serif; --pele-radius:6px; }
+
+  #right { display:grid; grid-template-rows:auto 3px auto 1fr auto; min-width:0; min-height:0; height:100%; }
+  #bar { display:flex; gap:12px; align-items:center; padding:12px 20px; }
+  #bar .title { flex:1; font-weight:600; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #count { font-variant-numeric:tabular-nums; color:var(--subtext); font-size:13px; }
+  #progress { background:var(--crust); } #progress div { height:100%; background:var(--accent); transition:width .25s ease; }
+  .tag { font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px; }
+  .tag.crit { background:var(--red); color:var(--base); }
+  .btn { font:inherit; font-size:13px; border:1px solid var(--surface); background:var(--card); color:var(--text); padding:5px 12px; border-radius:8px; cursor:pointer; transition:background .15s, border-color .15s; }
+  .btn:hover { border-color:var(--accent); }
+  .btn.primary { background:var(--accent); border-color:var(--accent); color:var(--base); font-weight:600; }
+  #stops { display:flex; flex-wrap:wrap; gap:6px; padding:10px 20px; border-bottom:1px solid var(--crust); }
+  #stops a { position:relative; display:grid; place-items:center; min-width:30px; height:30px; padding:0 8px; border-radius:8px; background:var(--mantle); color:var(--subtext); text-decoration:none; font-size:12.5px; font-weight:600; transition:all .15s; }
+  #stops a:hover { color:var(--text); background:var(--crust); }
+  #stops a.crit::after { content:""; position:absolute; top:4px; right:4px; width:6px; height:6px; border-radius:3px; background:var(--red); }
+  #stops a.seen { color:var(--text); }
+  #stops a.current { background:var(--accent); color:var(--base); }
+
+  #code { overflow:auto; min-height:0; font:12.5px/1.6 "JetBrains Mono", ui-monospace, monospace; }
+  pre code.hljs { border-radius:8px; }
+  .card { margin:10px 16px 14px; padding:16px 20px; background:var(--card); border-radius:12px; border-left:4px solid var(--accent); box-shadow:var(--shadow); font:14px/1.6 Inter, system-ui, sans-serif; white-space:normal; animation:rise .2s ease; }
+  .card.crit { border-left-color:var(--red); }
+  .card .head { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .card .node { font-size:11.5px; color:var(--subtext); background:var(--mantle); padding:2px 8px; border-radius:999px; }
+  .card h3 { margin:0 0 6px; font-size:16px; }
+  .card p { margin:6px 0; }
+  .card .actions { display:flex; gap:8px; margin-top:12px; }
+  .marker { display:inline-block; margin:4px 16px; font:600 11.5px Inter, sans-serif; color:var(--accent); background:var(--mantle); border-radius:999px; padding:2px 10px; cursor:pointer; }
+  @keyframes rise { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+  #help { padding:6px 20px; border-top:1px solid var(--crust); color:var(--overlay); font-size:12px; }
+  kbd { font:600 11px "JetBrains Mono", monospace; background:var(--mantle); border:1px solid var(--surface); border-bottom-width:2px; border-radius:4px; padding:0 5px; color:var(--subtext); }
+</style>
+</head>
+<body>
+<nav id="tabs"></nav>
+<div id="overlay"><div class="tools"><span>Map: scroll or drag to move, click a green node to go to its stop</span><button class="btn" data-zoom="0.8">−</button><button class="btn" data-zoom="0">Fit</button><button class="btn" data-zoom="1.25">+</button><button class="btn primary" data-zoom="close">Close (Esc)</button></div><div class="canvas"></div></div>
+<div id="main">
+<div id="todo"></div>
+<div id="right">
+  <div id="bar">
+    <button class="btn" id="prev" title="p">←</button>
+    <span id="count"></span>
+    <button class="btn" id="next" title="n">→</button>
+    <span class="title" id="title"></span>
+    <span id="crit"></span>
+    <button class="btn primary" id="open" title="o">Open in Zed</button>
+  </div>
+  <div id="progress"><div></div></div>
+  <div id="stops"></div>
+  <div id="code"></div>
+  <div id="help"><kbd>n</kbd> <kbd>→</kbd> next · <kbd>p</kbd> <kbd>←</kbd> previous · <kbd>o</kbd> open in Zed · <kbd>m</kbd> large map · click a line number to open that line</div>
+</div>
+</div>
+<script type="module">
+import { File as CodeFile, FileDiff } from "https://esm.sh/@pierre/diffs@1";
+import { mount, render as renderDiagram } from "https://cdn.jsdelivr.net/npm/pele@1/dist/pele.js";
+
+const tourId = new URLSearchParams(location.search).get("tour");
+const state = { tour: null, files: {}, current: 0, seen: new Set(), view: null, scrolled: false };
+const tourQuery = () => "tour=" + encodeURIComponent(tourId);
+const $ = (id) => document.getElementById(id);
+const escapeHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+function markdown(text) {
+  const box = document.createElement("div");
+  box.innerHTML = marked.parse(text);
+  box.querySelectorAll("pre code:not(.language-mermaid)").forEach((code) => hljs.highlightElement(code));
+  return box.innerHTML;
+}
+
+async function loadFile(path) {
+  if (!state.files[path]) {
+    const reply = await fetch("/file?" + tourQuery() + "&path=" + encodeURIComponent(path));
+    if (!reply.ok) throw new Error(reply.status + " " + (await reply.text()));
+    state.files[path] = await reply.json();
+  }
+  return state.files[path];
+}
+
+function cardElement(stop, number) {
+  const card = document.createElement("div");
+  card.className = "card" + (stop.critical ? " crit" : "");
+  card.id = "card";
+  card.innerHTML = '<div class="head"><span class="node">' + escapeHtml(stop.node) + '</span>' + (stop.critical ? '<span class="tag crit">critical</span>' : "") + '</div>' +
+    '<h3>' + number + '. ' + escapeHtml(stop.title) + '</h3>' + markdown(stop.body) +
+    '<div class="actions"><button class="btn" data-go="-1">← Previous</button><button class="btn" data-go="1">Next →</button><button class="btn primary" data-open="1">Open in Zed</button></div>';
+  return card;
+}
+
+function annotationElement(index) {
+  const stop = state.tour.stops[index];
+  if (index === state.current) return cardElement(stop, index + 1);
+  const marker = document.createElement("span");
+  marker.className = "marker";
+  marker.dataset.stop = index;
+  marker.textContent = "stop " + (index + 1) + ": " + stop.title;
+  return marker;
+}
+
+function scrollToCard() {
+  const card = $("card");
+  if (state.scrolled || !card) return;
+  state.scrolled = true;
+  const pane = $("code");
+  const offset = card.getBoundingClientRect().top - pane.getBoundingClientRect().top;
+  pane.scrollTop += offset - Math.max(80, (pane.clientHeight - card.offsetHeight) / 2);
+}
+
+async function show(index) {
+  const stops = state.tour.stops;
+  state.current = Math.max(0, Math.min(stops.length - 1, index));
+  state.seen.add(state.current);
+  const stop = stops[state.current];
+  const number = state.current + 1;
+  if (location.hash !== "#stop-" + number) history.replaceState(null, "", location.search + "#stop-" + number);
+  $("count").textContent = number + " / " + stops.length;
+  $("title").textContent = stop.title;
+  $("crit").innerHTML = stop.critical ? '<span class="tag crit">critical</span>' : "";
+  $("progress").firstElementChild.style.width = (100 * number / stops.length) + "%";
+  document.querySelectorAll("#stops a").forEach((a, i) => {
+    a.classList.toggle("current", i === state.current);
+    a.classList.toggle("seen", state.seen.has(i));
+  });
+  document.querySelectorAll("#todo a").forEach((a) => a.classList.toggle("current", (a.getAttribute("href") || a.getAttribute("xlink:href")) === "#stop-" + number));
+
+  let file;
+  try {
+    file = await loadFile(stop.file);
+  } catch (error) {
+    $("code").innerHTML = '<div id="empty">tour-v2: cannot load ' + escapeHtml(stop.file) + ": " + escapeHtml(error.message) + ". Reload the page; the server may have restarted.</div>";
+    return;
+  }
+  state.view?.cleanUp();
+  $("code").replaceChildren();
+  state.scrolled = false;
+  const changed = file.old !== file.new;
+  const side = changed ? { side: "additions" } : {};
+  const lineAnnotations = stops.flatMap((s, i) => s.file === stop.file ? [{ ...side, lineNumber: s.end, metadata: { stop: i } }] : []);
+  const options = {
+    theme: { dark: "pierre-dark", light: "pierre-light" },
+    lineHoverHighlight: "number",
+    onLineNumberClick: ({ lineNumber, side }) => { if (side !== "deletions") openInZed(lineNumber); },
+    renderAnnotation: (annotation) => annotationElement(annotation.metadata.stop),
+    onPostRender: (node, instance, phase) => { if (phase !== "unmount") scrollToCard(); },
+  };
+  const newFile = { name: stop.file, contents: file.new };
+  if (changed) {
+    state.view = new FileDiff({ ...options, diffStyle: "unified", expandUnchanged: true });
+    state.view.render({ oldFile: file.old === null ? null : { name: stop.file, contents: file.old }, newFile, lineAnnotations, containerWrapper: $("code") });
+  } else {
+    state.view = new CodeFile(options);
+    state.view.render({ file: newFile, lineAnnotations, containerWrapper: $("code") });
+  }
+  state.view.setSelectedLines({ start: stop.line, end: stop.end, ...side });
+  scrollToCard();
+}
+
+async function openInZed(line) {
+  const stop = state.tour.stops[state.current];
+  const reply = await fetch("/open?" + tourQuery() + "&path=" + encodeURIComponent(stop.file) + "&line=" + (line || stop.line), { method: "POST" });
+  if (!reply.ok) alert(await reply.text());
+}
+
+const overlay = { svg: null, width: 0 };
+
+function fitWidth() {
+  const canvas = document.querySelector("#overlay .canvas");
+  const box = overlay.svg.viewBox.baseVal;
+  return Math.min(canvas.clientWidth - 48, (canvas.clientHeight - 48) * box.width / box.height);
+}
+
+function setOverlayWidth(width) {
+  overlay.width = width;
+  overlay.svg.style.maxWidth = "none";
+  overlay.svg.style.width = width + "px";
+  overlay.svg.style.height = "auto";
+}
+
+function openOverlay(source) {
+  const canvas = document.querySelector("#overlay .canvas");
+  canvas.innerHTML = renderDiagram(source, { autoDirection: false, responsive: false, fontSize: 14 }).svg;
+  overlay.svg = canvas.querySelector("svg");
+  $("overlay").classList.add("on");
+  setOverlayWidth(fitWidth());
+}
+
+function closeOverlay() {
+  $("overlay").classList.remove("on");
+}
+
+function setupOverlay() {
+  const canvas = document.querySelector("#overlay .canvas");
+  document.querySelector("#overlay .tools").onclick = (event) => {
+    const zoom = event.target.closest("[data-zoom]")?.dataset.zoom;
+    if (!zoom) return;
+    if (zoom === "close") return closeOverlay();
+    setOverlayWidth(zoom === "0" ? fitWidth() : overlay.width * Number(zoom));
+  };
+  canvas.onclick = (event) => { if (event.target.closest("a")) closeOverlay(); };
+  let drag = null;
+  canvas.onmousedown = (event) => { drag = { x: event.clientX, y: event.clientY, left: canvas.scrollLeft, top: canvas.scrollTop }; };
+  addEventListener("mouseup", () => { drag = null; });
+  canvas.onmousemove = (event) => {
+    if (!drag) return;
+    canvas.scrollLeft = drag.left - (event.clientX - drag.x);
+    canvas.scrollTop = drag.top - (event.clientY - drag.y);
+  };
+}
+
+function mountDiagrams() {
+  document.querySelectorAll("#todo code.language-mermaid").forEach((code) => {
+    const box = document.createElement("div");
+    box.className = "mermaid";
+    box.dataset.source = code.textContent;
+    code.parentElement.replaceWith(box);
+    try {
+      mount(box, box.dataset.source, { fontSize: 13 });
+    } catch (error) {
+      box.textContent = error.message;
+      return;
+    }
+    box.addEventListener("click", (event) => { if (!event.target.closest("a")) openOverlay(box.dataset.source); });
+  });
+}
+
+function stopFromHash() {
+  const match = location.hash.match(/^#stop-(\d+)$/);
+  return match ? Number(match[1]) - 1 : null;
+}
+
+function tourUrl(id) {
+  return "/?tour=" + encodeURIComponent(id);
+}
+
+async function renderTabs() {
+  const tours = await (await fetch("/tours")).json();
+  $("tabs").innerHTML = tours.map((t) =>
+    '<a class="tab' + (t.id === tourId ? " current" : "") + '" href="' + tourUrl(t.id) + '" title="' + escapeHtml(t.id) + '">' +
+    '<span class="name">' + escapeHtml(t.title) + '</span>' +
+    '<span class="count' + (t.critical ? " crit" : "") + '">' + t.stops + '</span>' +
+    '<button class="x" data-close="' + escapeHtml(t.id) + '" title="Close the tour">×</button></a>').join("");
+  return tours;
+}
+
+async function closeTour(id) {
+  await fetch("/close?tour=" + encodeURIComponent(id), { method: "POST" });
+  const tours = await renderTabs();
+  if (id === tourId) location.href = tours.length ? tourUrl(tours[0].id) : "/";
+}
+
+async function start() {
+  const tours = await renderTabs();
+  $("tabs").onclick = (event) => {
+    const x = event.target.closest("[data-close]");
+    if (!x) return;
+    event.preventDefault();
+    closeTour(x.dataset.close);
+  };
+  setInterval(renderTabs, 4000);
+  if (!tourId && tours.length) return location.replace(tourUrl(tours[0].id));
+  if (!tours.some((t) => t.id === tourId)) {
+    $("main").innerHTML = '<div id="empty">No open tour. Run <code>tour open &lt;tour-dir&gt;</code> to add one.</div>';
+    return;
+  }
+  const { tour, todo } = await (await fetch("/tour?" + tourQuery())).json();
+  state.tour = tour;
+  document.title = tour.title;
+  $("todo").innerHTML = markdown(todo);
+  await document.fonts.ready;
+  mountDiagrams();
+  setupOverlay();
+  $("stops").innerHTML = tour.stops.map((s, i) => '<a href="#stop-' + (i + 1) + '" class="' + (s.critical ? "crit" : "") + '" title="' + escapeHtml(s.title) + '">' + (i + 1) + '</a>').join("");
+  $("prev").onclick = () => show(state.current - 1);
+  $("next").onclick = () => show(state.current + 1);
+  $("open").onclick = () => openInZed();
+  $("code").onclick = (event) => {
+    const marker = event.target.closest(".marker");
+    if (marker) return show(Number(marker.dataset.stop));
+    const go = event.target.closest("[data-go]");
+    if (go) return show(state.current + Number(go.dataset.go));
+    if (event.target.closest("[data-open]")) return openInZed();
+  };
+  addEventListener("hashchange", () => { const i = stopFromHash(); if (i !== null && i !== state.current) show(i); });
+  addEventListener("keydown", (event) => {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.key === "Escape") return closeOverlay();
+    const first = document.querySelector("#todo .mermaid");
+    if (event.key === "m" && first) return openOverlay(first.dataset.source);
+    if ($("overlay").classList.contains("on")) return;
+    if (["n", "j", "ArrowRight"].includes(event.key)) show(state.current + 1);
+    if (["p", "k", "ArrowLeft"].includes(event.key)) show(state.current - 1);
+    if (event.key === "o") openInZed();
+  });
+  await show(stopFromHash() ?? 0);
+}
+start();
+</script>
+</body>
+</html>

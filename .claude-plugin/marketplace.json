@@ -1,0 +1,13 @@
+{
+  "name": "tour-v2",
+  "owner": {
+    "name": "popoffvg"
+  },
+  "plugins": [
+    {
+      "name": "tour-v2",
+      "source": "./",
+      "description": "Tour a code change as a domain map and comments at the code, served in a local viewer"
+    }
+  ]
+}

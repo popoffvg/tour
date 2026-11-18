@@ -12,8 +12,8 @@ The viewer at http://127.0.0.1:8792/ shows `TODO.md` on the left and the code wi
 ## Install
 
 ```sh
-claude plugin marketplace add popoffvg/tour-v2
-claude plugin install tour-v2@tour-v2
+claude plugin marketplace add popoffvg/tour
+claude plugin install tour-v2@tour
 ```
 
 Then ask Claude: `/tour-v2:tour-v2 tour my uncommitted changes`, or "tour PR #123".
